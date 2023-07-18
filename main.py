@@ -168,7 +168,7 @@ if __name__ == "__main__":
     #parser.add_argument("-o", "--output", type=str, required=True, help="Output file (required)")
     parser.add_argument("-k", "--top_k", type=int, default=10, help="Top k prompt outputs (default: 100)")
     parser.add_argument("-t", "--threshold", type=float, default=0.1, help="Probability threshold (default: 0.1)")
-    parser.add_argument("-g", "--gpu", type=str, default=-1, help="GPU ID, (default: -1, i.e., using CPU)")
+    parser.add_argument("-g", "--gpu", type=int, default=-1, help="GPU ID, (default: -1, i.e., using CPU)")
     parser.add_argument("-qp", "--question_prompts", type=str, required=True, help="CSV file containing question prompt templates (required)")
     parser.add_argument("-fp", "--fill_mask_prompts", type=str, required=True, help="CSV file containing fill-mask prompt templates (required)")
     parser.add_argument("-f", "--few_shot", type=int, default=5, help="Number of few-shot examples (default: 5)")
