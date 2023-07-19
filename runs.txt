@@ -4,5 +4,3 @@ python main.py --input data/val.jsonl --fill_mask_prompts prompts.csv --question
 GPU M2 acellerated -> --gpu mps
 python main.py --input data/val.jsonl --fill_mask_prompts prompts.csv --question_prompts question-prompts.csv  --output outputs/testrun-bert-large-cased-v1.jsonl --train_data data/train.jsonl --model bert-large-cased --batch_size 32 --gpu mps
 
-
-

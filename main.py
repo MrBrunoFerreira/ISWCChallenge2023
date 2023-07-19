@@ -5,6 +5,9 @@ import logging
 import requests
 import random
 
+import platform
+import time
+
 import torch
 from transformers import AutoModelForMaskedLM, AutoModelForCausalLM, AutoTokenizer, pipeline
 from typing import List
@@ -79,8 +82,9 @@ def run(args):
     logger.info(f"Loading the model \"{model_type}\"...")
     tokenizer = AutoTokenizer.from_pretrained(model_type)
     model = AutoModelForMaskedLM.from_pretrained(model_type)  if "bert" in model_type.lower()  else AutoModelForCausalLM.from_pretrained(model_type)
-    task = "fill-mask" if "bert" in model_type.lower() else "text-generation"    
-     
+    
+    # task = "fill-mask" if "bert" in model_type.lower() else "text-generation"    
+    task = args.task 
     
     # Read the prompt templates and train data from CSV files
     if task == "text-generation":
@@ -125,6 +129,8 @@ def run(args):
 
     # Run the model
     logger.info(f"Running the model...")
+    start = time.time()
+
     if task == 'fill-mask':
         outputs = pipe(prompts, batch_size=args.batch_size)
     else:
@@ -155,6 +161,10 @@ def run(args):
         }
         results.append(result_row)
 
+    # run finished
+    end = time.time()
+    print("Time runing the model: " + end - start + "seconds")
+
     # Save the results
     logger.info(f"Saving the results to \"{outputFile}\"...")
     with open(outputFile, "w") as f:
@@ -165,20 +175,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the Model with Question and Fill-Mask Prompts")
     parser.add_argument("-m", "--model", type=str, default="bert-base-cased", help="HuggingFace model name (default: bert-base-cased)")
     parser.add_argument("-i", "--input", type=str, required=True, help="Input test file (required)")
-    #parser.add_argument("-o", "--output", type=str, required=True, help="Output file (required)")
     parser.add_argument("-k", "--top_k", type=int, default=10, help="Top k prompt outputs (default: 100)")
     parser.add_argument("-t", "--threshold", type=float, default=0.1, help="Probability threshold (default: 0.1)")
-    parser.add_argument("-g", "--gpu", type=int, default=-1, help="GPU ID, (default: -1, i.e., using CPU)")
+    if platform.system() == "Darwin":
+        parser.add_argument("-g", "--gpu", type=str, required=True, help="GPU ID, (default: -1, i.e., using CPU)")
+    else:
+        parser.add_argument("-g", "--gpu", type=int, default=-1, help="GPU ID, (default: -1, i.e., using CPU)")
     parser.add_argument("-qp", "--question_prompts", type=str, required=True, help="CSV file containing question prompt templates (required)")
     parser.add_argument("-fp", "--fill_mask_prompts", type=str, required=True, help="CSV file containing fill-mask prompt templates (required)")
     parser.add_argument("-f", "--few_shot", type=int, default=5, help="Number of few-shot examples (default: 5)")
     parser.add_argument("--train_data", type=str, required=True, help="CSV file containing train data for few-shot examples (required)")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for the model. (default:32)")
     parser.add_argument("--fp16", action="store_true", help="Enable 16-bit model (default: False). This is ignored for BERT.")
-
+    parser.add_argument("-tk", "--task", type=str, required=True, help="fill-mask or text-generation(required)")
+    #parser.add_argument("-o", "--output", type=str, required=True, help="Output file (required)")
     args = parser.parse_args()
 
-    outputFile = "outputs/testrun-" + str(args.model) + "-" + str(args.top_k) + "-" + str(args.threshold) + "-" + str(args.few_shot) + "-" + str(args.batch_size) + ".jsonl"
-    #print(outputFile)
+    outputFile = "outputs/testrun-" + str(args.model) + "-" + str(args.top_k) + "-" + str(args.threshold) + "-" + str(args.few_shot) + "-" + str(args.batch_size) + "-" + str(args.task) + ".jsonl"
     
     run(args)
